@@ -25,8 +25,9 @@ Dong@nudt.edu.cn}
 \maketitle
 
 \begin{abstract}
-The increase in network size and link speed, the popularity of partition/aggregation modes, and the large amount of burst traffic bring challenges to congestion control. Many work address these issues in different ways to different extents in actual data center networks. But when a data center network runs different protocols, there is no effective mechanism for managing different protocols. This extensive network cannot meet the following requirements: 1) zero packet loss, 2) fairness, 3) low buffer occupancy, and 4) high utilization of bottleneck link.\\
-This paper proposes congestion control of hybrid-flow, which is designed to operate various protocols in a data center network with minimal modification cost. In order to achieve a lossless network, whether it is reactive congestion control or proactive congestion control, ECN tagged packets are chosen to be used as a sign of congestion. This unified congestion flag effectively addresses the problem of packet loss caused by burst traffic and unfair link utilization. We use omnet to evaluate congestion control of hybrid-flow. Through evaluation, various protocols running in the hybrid network have significantly improved convergence and flow completion time before unscheduled. The performance of each protocol evaluation is almost the same as the original protocol in a pure network environment. Even under heavy incast real network load, various protocols operate in parallel without being affected by each other.
+In Data Center Networks (DCNs), the increase of network size and link speed, the popularity of partition/aggregation communication modes, and the large amount of burst traffic bring challenges to congestion control. Many schemes, including both reactive and proactive, have been developed to address these issues in different ways in real data center networks. But when different protocols are concurrently run in a DCN, it can be hard to meet the following requirements: 1) fairness, 2) low buffer occupancy, and 3) fast convergence.\\
+
+This paper proposes a congestion control scheme of hybrid-flow, which is designed to harmonize reactive and proactive protocols in a data center network with minimal performance cost. In this paper, we take an ECN-based reactive congestion control and a credit-based proactive congestion control use the Explicit Congestion Notification (ECN) to schedule the credits of a proactive scheme, whether it is reactive congestion control or proactive congestion control, ECN tagged packets are chosen to be used as a sign of congestion. This unified congestion flag effectively addresses the problem of packet loss caused by burst traffic and unfair link utilization. We use omnet to evaluate congestion control of hybrid-flow. Through evaluation, various protocols running in the hybrid network have significantly improved convergence and flow completion time before unscheduled. The performance of each protocol evaluation is almost the same as the original protocol in a pure network environment. Even under heavy incast real network load, various protocols operate in parallel without being affected by each other.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -34,7 +35,7 @@ Congestion Control, Datacenter Network, ECN, Hybrid Network
 \end{IEEEkeywords}
 
 \section{Introduction}
-In recent years, with the increase in the size and link speed of data center networks£¨ many data center networks can connect more than 100,000 servers using a Clos network. In this case, how to use shallow buffer of the switch to avoid packet loss caused by massive queues of data packets becomes a key issue for the data center network.\\
+In recent years, with the increase in the size and link speed of data center networks¬£¬¨ many data center networks can connect more than 100,000 servers using a Clos network. In this case, how to use shallow buffer of the switch to avoid packet loss caused by massive queues of data packets becomes a key issue for the data center network.\\
 \indent Many work have been proposed to address this challenge. Currently the most common application is through the method of reactive congestion control. At the same time, the proactive congestion control algorithm that can achieve nearly-zero queuing also takes up more status.\\
 \indent Reactive congestion control uses ECN flag or network delay as a signal to feed back a signal to the sender when congestion occurs to lower congestion window(cwnd). Reactive congestion control technology combined with technologies such as slow start and fast retransmission has achieved good performance evaluation in suppressing congestion caused by bursty traffic.\\
 \indent In contrast, proactive congestion control signals the maximum rate that the sender can send according to the maximum transmission rate that the receiver and the switch can bear. The proactive congestion control method excels in traffic models where long traffic accounts for the main components.\\
@@ -50,7 +51,7 @@ In recent years, with the increase in the size and link speed of data center net
 \STATE ECN\_ratio = \#\_sum\_ECN\_packet / \#\_sum\_packet;
 \IF{$loss\_rate \leqslant target\_loss\_ratio$}
         \STATE (increasing phase)
-        \STATE $\omega=£®\omega+\omega\_max£©/2$;
+        \STATE $\omega=¬£¬®\omega+\omega\_max¬£¬©/2$;
         \STATE $tmp\_rate = (1-\omega) * now\_rate +\omega*max\_rate*(1+ target\_loss\_ratio)$;
 \ELSE
         \STATE (decreasing phase)
@@ -59,12 +60,12 @@ In recent years, with the increase in the size and link speed of data center net
 \ENDIF
 \IF{$ECN\_ratio \leqslant target\_ECN\_ratio$}
         \STATE (increasing phase)
-        \STATE $ECN_\alpha = £®1-g£©* ECN\_\alpha+g * ECN\_ratio$;
+        \STATE $ECN_\alpha = ¬£¬®1-g¬£¬©* ECN\_\alpha+g * ECN\_ratio$;
         \STATE $now\_rate = tmp\_rate*(1+(target\_ECN\_ratio +ECN\_\alpha) / 2)$;    
 \ELSE
         \STATE (decreasing phase)
         \STATE $ECN\_\alpha =(1-g)* ECN\_\alpha+g*ECN\_ratio$;
-        \STATE $now\_rate = tmp\_rate*(1-(target\_ECN\_ratio +ECN\_¶¡) / 2)$;
+        \STATE $now\_rate = tmp\_rate*(1-(target\_ECN\_ratio +ECN\_¬¶√Å) / 2)$;
 \ENDIF 
 \UNTIL{End of flow}   
 \end{algorithmic}
@@ -95,7 +96,7 @@ A data center network often contains millions of connections, and these connecti
 \indent Consider the simple topology as shown in Figure 1, in which a flow of the same mode as flow 1 is scheduled by proactive congestion control algorithm (e,g.ExpressPass), and other flow of the same type as flow N are subject to reactive congestion control algorithm (e.g. DCTCP), in these topologies, when these servers running different protocols send data to their respective receivers, link 1 becomes the bottleneck link.\\
 \indent In theory, when the traffic based on proactive congestion control algorithm meets the traffic based on reactive congestion control algorithm, traffic based on the proactive congestion control algorithm does not decelerate due to bottleneck link congestion, but when the bottleneck link is congested.  The switch will pass congestion information to the sender in various ways to alert the sender to reduce the transmission rate. Finally, the process based on the proactive congestion control algorithm preempts all resources of the bottleneck link.\\
 \indent To validate our analysis, we designed a experiment on the topology shown in Figure 1. How to allocate link 1 is the key to the issue.\\
-\indent We used OMNET to perform our simulation experiments. For proactive congestion control we use ExpressPass as an example, and for reactive congestion control we use DCTCP as an example. Each sender continuously keeps the data packet to the receiving end 2000B within the set time. At the same time, the receiver based on the credit schedule sends a credit of size 84B to the corresponding sender for ExpressPass. In the first experiment, ExpressPass traffic was inserted at time t in a data center network running DCTCP. In the second experiment, DCTCP traffic was inserted at time t in a data center network running a steady flow of ExpressPass traffic.     The link speed is 10Gbps and the delay is 5 ¶Ãs.\\
+\indent We used OMNET to perform our simulation experiments. For proactive congestion control we use ExpressPass as an example, and for reactive congestion control we use DCTCP as an example. Each sender continuously keeps the data packet to the receiving end 2000B within the set time. At the same time, the receiver based on the credit schedule sends a credit of size 84B to the corresponding sender for ExpressPass. In the first experiment, ExpressPass traffic was inserted at time t in a data center network running DCTCP. In the second experiment, DCTCP traffic was inserted at time t in a data center network running a steady flow of ExpressPass traffic.     The link speed is 10Gbps and the delay is 5 ¬¶√ås.\\
 \indent The results of the two experiments are shown in Figure 2. From the results, we can clearly see that the flow based on credit scheduling reflects its strong encroachment whether it is simultaneous concurrent flow or late inserting flow. Flow based on credit scheduling can quickly occupy bottleneck resources, while other flow can only "starve" when resources are used based on credit scheduling. We hope to achieve better evaluation performance on the following issues when solving this practical problem.
 
 \subsection{Unified Congestion Control Flag}
@@ -216,7 +217,7 @@ At the beginning of the experiment, we hope to obtain congestion information thr
 \indent For some protocols, it is not necessary to adjust your traffic in real time based on congestion conditions. Not using a unified congestion control flag, sometimes the computational cost can be reduced, but in a hybrid-flow network it often leads to unfairness. Through evaluation, we found that using ECN as a congestion flag only adds a small amount of computational cost, but it improves overall network performance. Of course, it is not enough to use ECN as a unified congestion control flag. We also need to improve the internal architecture of the protocol, adjust the parameters of each protocol, and ensure the fairness between the various protocols.
 \subsection{Switch and End-Host Design Link Capacity Allocation}
 \begin{itemize}
-\item  congestion control of hybrid-flow mechanism retains the credit channel of proactive congestion control. Since it is guaranteed that when the network is all based on the credit-based scheduling mechanism, the credit channel bandwidth still accounts for 84/(84+1538)°÷0.05
+\item  congestion control of hybrid-flow mechanism retains the credit channel of proactive congestion control. Since it is guaranteed that when the network is all based on the credit-based scheduling mechanism, the credit channel bandwidth still accounts for 84/(84+1538)¬°√ñ0.05
     of the total bandwidth. For the remaining 0.95 of the packet bandwidth requirements, the ECN label is applied to packets that exceed the threshold indiscriminately in the switch and End-host design.
 \item ECN-based Rate-limiting:In response to burst traffic, we set several thresholds for shallow buffers. When burst traffic is large or even causes packet loss, we put ECN flags on all packets to reduce the packet transmission rate as soon as possible. When alerting the threshold, we randomly tag some packets with ECN tags so that the queue length is maintained within a reasonable range.
 \item Ensuring fair deceleration:For the receiver, it is more important to deal with the ECN-tagged packets. The DCTCP and other packets will return ACK packets to the source node according to the ECN packets. This is the mainstream practice in data center networks. For the recently credit-based congestion control algorithm, we hope to reduce the credit transmission rate according to the received ECN data packet, thereby achieving the purpose of reducing the packet transmission rate. In this design, the key is to design a reasonable algorithm, select the appropriate parameters, so that different fair can reduce the rate fairly.
